@@ -1,0 +1,47 @@
+#include <ESP8266WiFi.h>
+#include "ThingSpeak.h"
+
+// WiFi credentials
+const char* ssid = "Harsh";
+const char* password = "12345678";
+
+// ThingSpeak settings
+unsigned long channelID = 2938975;  // Example: 1234567
+const char* writeAPIKey = "72O91JAEZLKSWRH0";
+
+WiFiClient client;
+
+const int pulsePin = A0;
+int pulseValue = 0;
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi connected");
+
+  ThingSpeak.begin(client);  // Initialize ThingSpeak
+}
+
+void loop() {
+  pulseValue = analogRead(pulsePin);
+  Serial.print("Pulse: ");
+  Serial.println(pulseValue);
+
+  // Update ThingSpeak channel
+  ThingSpeak.setField(1, pulseValue);
+
+  int statusCode = ThingSpeak.writeFields(channelID, writeAPIKey);
+
+  if (statusCode == 200) {
+    Serial.println("Data sent successfully.");
+  } else {
+    Serial.println("Problem sending data. HTTP error code " + String(statusCode));
+  }
+
+  delay(15000); // ThingSpeak allows updates once every 15 seconds minimum
+}
