@@ -1,0 +1,61 @@
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+
+// WiFi credentials
+const char* ssid = "Harsh";
+const char* password = "12345678";
+
+// Pushbullet API
+const char* pushbulletToken = "o.y6nXRzStOFRKHLx4tLzFw5xhdn1LKhoV";
+
+WiFiClientSecure client;
+
+const int pulsePin = A0;
+int pulseValue = 0;
+int thresholdHigh = 800;  // Adjust based on sensor
+int thresholdLow = 200;   // Adjust based on sensor
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi...");
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println(" Connected!");
+
+  client.setInsecure(); // For HTTPS
+}
+
+void loop() {
+  pulseValue = analogRead(pulsePin);
+  Serial.println(pulseValue);
+
+  if (pulseValue > thresholdHigh || pulseValue < thresholdLow) {
+    sendPushbulletNotification("Abnormal Heartbeat Detected!", "Pulse reading: " + String(pulseValue));
+    delay(10000); // Prevent spamming
+  }
+  
+  delay(500);
+}
+
+void sendPushbulletNotification(String title, String body) {
+  if (client.connect("api.pushbullet.com", 443)) {
+    String postData = "{\"type\": \"note\", \"title\": \"" + title + "\", \"body\": \"" + body + "\"}";
+
+    client.println("POST /v2/pushes HTTP/1.1");
+    client.println("Host: api.pushbullet.com");
+    client.println("Authorization: Bearer " + String(pushbulletToken));
+    client.println("Content-Type: application/json");
+    client.print("Content-Length: ");
+    client.println(postData.length());
+    client.println();
+    client.println(postData);
+    
+    Serial.println("Pushbullet Notification Sent.");
+  } else {
+    Serial.println("Pushbullet Connection Failed.");
+  }
+}
