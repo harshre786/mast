@@ -1,0 +1,32 @@
+#define BLYNK_TEMPLATE_ID "TMPL3GqCALYIn"
+#define BLYNK_TEMPLATE_NAME "ex 4"
+
+#define BLYNK_PRINT Serial
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+
+const char* ssid = "Harsh";      // Replace with your WiFi SSID
+const char* password = "12345678";  // Replace with your WiFi Password
+char auth[] = "VJBQ68AODaHgnFwqGDdH5uZPjAFOroQE";   // Get from Blynk App
+
+const int pulsePin = A0;  // Pulse Sensor connected to Analog Pin A0
+BlynkTimer timer;
+
+void sendHeartbeat() {
+  int heartbeat = analogRead(pulsePin);  
+  int bpm = map(heartbeat, 0, 1024, 60, 120);  // Convert raw value to BPM
+  Serial.println("Heartbeat: " + String(bpm) + " BPM");
+  Blynk.virtualWrite(V1, bpm);  // Send BPM data to Blynk app on Virtual Pin V1
+}
+
+void setup() {
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, password);
+  
+  timer.setInterval(1000L, sendHeartbeat);  // Send data every second
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}
