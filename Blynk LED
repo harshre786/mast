@@ -1,0 +1,43 @@
+#define BLYNK_TEMPLATE_ID "TMPL37NOE4gVL"
+#define BLYNK_TEMPLATE_NAME "Home"
+#define BLYNK_AUTH_TOKEN "gn_MZ2v6OR2FBL6xPf1o7lVQGHzc3hqL"
+
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+
+char ssid[] = "Harsh";
+char pass[] = "12345678";
+
+#define LED_PIN LED_BUILTIN  // D4 or GPIO2 (Active LOW)
+
+BlynkTimer timer;
+
+// This function is called whenever the app writes to Virtual Pin V0
+BLYNK_WRITE(V3)
+{
+  int pinValue = param.asInt(); // Get value from Blynk app
+
+  // Active LOW for inbuilt LED
+  if (pinValue == 1) {
+    digitalWrite(LED_PIN, LOW);  // LED ON
+  } else {
+    digitalWrite(LED_PIN, HIGH); // LED OFF
+  }
+}
+
+void setup()
+{
+  // Debug console
+  Serial.begin(115200);
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH); // Turn off at start
+
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+}
+
+void loop()
+{
+  Blynk.run();
+  timer.run(); // Run timer events
+}
